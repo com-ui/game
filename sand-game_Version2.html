@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Sand Game</title>
+  <style>
+    body { background: #222; color: #fff; display: flex; flex-direction: column; align-items: center; }
+    canvas { border: 1px solid #888; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Simple Sand Game</h1>
+  <p>Left-click to place sand. Hold and drag!</p>
+  <canvas id="sandCanvas" width="400" height="300"></canvas>
+  <script>
+    const canvas = document.getElementById('sandCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const gridSize = 2; // pixels per cell
+
+    const cols = Math.floor(width / gridSize);
+    const rows = Math.floor(height / gridSize);
+
+    // 0 = empty, 1 = sand
+    const grid = [];
+    for (let y = 0; y < rows; y++) {
+      grid[y] = [];
+      for (let x = 0; x < cols; x++) {
+        grid[y][x] = 0;
+      }
+    }
+
+    // Draw sand to grid
+    function drawSand(x, y) {
+      const gx = Math.floor(x / gridSize);
+      const gy = Math.floor(y / gridSize);
+      if (gx >= 0 && gx < cols && gy >= 0 && gy < rows) {
+        grid[gy][gx] = 1;
+      }
+    }
+
+    // Mouse interaction
+    let isDrawing = false;
+    canvas.addEventListener('mousedown', e => { isDrawing = true; drawSand(e.offsetX, e.offsetY); });
+    canvas.addEventListener('mouseup', () => { isDrawing = false; });
+    canvas.addEventListener('mousemove', e => {
+      if (isDrawing) drawSand(e.offsetX, e.offsetY);
+    });
+
+    // Sand physics (very simple: sand falls if space below is empty)
+    function updateSand() {
+      for (let y = rows - 2; y >= 0; y--) {
+        for (let x = 0; x < cols; x++) {
+          if (grid[y][x] === 1 && grid[y+1][x] === 0) {
+            grid[y][x] = 0;
+            grid[y+1][x] = 1;
+          }
+        }
+      }
+    }
+
+    // Render grid
+    function render() {
+      ctx.clearRect(0, 0, width, height);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          if (grid[y][x] === 1) {
+            ctx.fillStyle = "#FFD700";
+            ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+          }
+        }
+      }
+    }
+
+    // Main loop
+    function loop() {
+      updateSand();
+      render();
+      requestAnimationFrame(loop);
+    }
+    loop();
+  </script>
+</body>
+</html>
